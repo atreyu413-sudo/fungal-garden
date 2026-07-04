@@ -1,0 +1,21 @@
+{
+  "id": "fungal-garden",
+  "title": "Fungal Garden",
+
+  "version": "0.0.1",
+
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13"
+  },
+
+  "authors": [
+    {
+      "name": "Damien Burks"
+    }
+  ],
+
+  "esmodules": [
+    "dist/module.js"
+  ]
+}
