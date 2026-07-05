@@ -1,0 +1,20 @@
+{
+  "name": "fungal-garden",
+  "version": "0.2.0",
+  "description": "A Foundry VTT module simulating a living fungal ecosystem on a Tortle's shell.",
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "author": "Damien Burks",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.0",
+    "vitest": "^2.1.8"
+  }
+}

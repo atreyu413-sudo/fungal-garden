@@ -19,7 +19,7 @@ export function toDays(value: number, unit: 'days' | 'weeks' | 'months'): number
   }
 }
 
-export function isDawn(campaignDay: number): boolean {
+export function isDawn(_campaignDay: number): boolean {
   // One breeding opportunity per day boundary; "dawn" = start of each new day.
   return true; // every campaignDay increment IS a dawn in this model
 }

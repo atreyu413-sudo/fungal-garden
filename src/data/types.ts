@@ -65,6 +65,7 @@ export interface PhysicalTraits {
   bioluminescent: boolean;
   transparent: boolean;
   dimensions: Dimensions;
+  rates: Rates; // rtfmDays/mruom/romgDays; tied to PhysicalTraits per docs/03-Data-Schema.md loose-end note
   flavor: {
     flavor1: string;
     flavor2?: string; // hybrids may stack a second flavor
