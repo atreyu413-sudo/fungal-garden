@@ -1,0 +1,93 @@
+{
+  "$schema": "./schema/growth-rules.md",
+  "description": "Mechanical constants and rules for the growth/maturation/mycelium/ecosystem engine. Distilled from RULES-SPEC.md sections 1, 3, 4 and time.ts. These are pure data the engine reads; no logic is hardcoded. See docs/04-Automation.md for how the pipeline consumes them, and docs/02-Design-Decisions.md for the referenced decisions.",
+
+  "time": {
+    "daysPerWeek": 7,
+    "daysPerMonth": 30,
+    "note": "Unified single-clock model (D5): one month = 30 days everywhere, including RTFM month conversion and Plant Growth. Every campaignDay increment is one dawn (isDawn ≡ true).",
+    "plantGrowthAdvanceDays": { "action": 30, "eightHour": 365 },
+    "ecosystemAutoResumeDays": 7,
+    "prepMethodExpiryDays": { "save": 0.0417, "tea": 1, "powder": 7 },
+    "prepMethodExpiryNote": "save = 1/24 day (1 hour); with a whole-day clock any save-prep item is expired by the next day advance (D7)."
+  },
+
+  "rtfmInitiation": {
+    "description": "Requirements before a colony may begin accruing RTFM (maturation).",
+    "toadstool": "mycelium must fill the full hex area of the optimum volva diameter",
+    "mushroom": "mycelium must fill the full hex area of the optimum volva diameter",
+    "shelfToadstool": "mycelium must fill a horizontal line of hexes as long as the optimum cap diameter",
+    "mold": "needs 1 mycelium unit AND shade to begin; fully matured only at MRUOM (harvestable area = MRUOM)",
+    "note": "Sensitivity rules tagged appliesAt:'rtfmInitiation' add or remove contact/neighbor gates on top of these physical requirements. ringedBoostsGrowth (D17) satisfies the contact gates but not the physical fill."
+  },
+
+  "shade": {
+    "description": "A hex is shaded when it meets any of these.",
+    "definitions": [
+      "any hex directly beneath the cap of a mushroom/traditional toadstool that would otherwise be sun-exposed",
+      "for shelf toadstools: any growth shorter than the shelf toadstool's optimum cap height, adjacent to its shell-bottom-facing edge, within its diameter"
+    ],
+    "transparentProvidesShade": false,
+    "brownIgnoresShadeRequirement": true,
+    "note": "Shade requirement/provision is judged by INTENDED (non-penalized) height, not the diagonal-penalized actual height (D6). brownIgnoresShade comes from sensitivities.json brownIgnoresShade."
+  },
+
+  "mycelium": {
+    "mruomRequired": "all fungi must maintain MRUOM to survive; a growth is not required to stay alive",
+    "romgSpread": "at each ROMG cycle boundary, each mycelium unit duplicates into one adjacent empty hex (never a hex holding a growth); surplus beyond empty neighbors dies unless already at/above MRUOM",
+    "romgBoundary": "myceliumAgeDays is cumulative; a cycle completes when myceliumAgeDays > 0 && myceliumAgeDays % romgDays === 0 (D13)",
+    "growthBearingSuspendsRomg": "ROMG for growth-bearing mycelium is suspended until the growth is removed; non-bearing mycelium spreads normally",
+    "belowMruomRecovery": "if mycelium drops below MRUOM it has exactly 1 ROMG cycle to recover or it dies completely",
+    "weeklyMove": {
+      "when": "day % 7 === 0",
+      "rule": "any number of unburdened (non-growth-bearing) units may move 1 hex into an adjacent empty space",
+      "consumeReplace": "moving into a hex holding another mycelium TYPE consumes and replaces it",
+      "lockedIfBearing": "growth-bearing mycelium is locked in place until harvest",
+      "resolutionOrder": "one unit at a time in seniority order (lower createdDay, then smaller id) per D3"
+    },
+    "spreadCollisionOrder": "two colonies targeting the same empty hex resolve by seniority (lower createdDay, then smaller colony id) per D2; loser spreads to another empty neighbor or its surplus dies"
+  },
+
+  "verticalGrowth": {
+    "startsStraightUp": true,
+    "diagonalAllowed": { "mold": true, "mushroom": true, "toadstool": true, "shelfToadstool": false },
+    "diagonalPenalty": { "heightLostPerUnits": 1, "perDiagonalUnits": 2 },
+    "penaltyNote": "-1 final height per 2 units of diagonal stem. Shade math still uses intended (non-penalized) height category (D6)."
+  },
+
+  "merge": {
+    "description": "Identical / same-Species colonies cultivated into adjacent hexes merge immediately into one colony.",
+    "myceliumUnits": "sum of merged colonies (D12)",
+    "tileIds": "union",
+    "myceliumAgeDays": "adopt the most recently cultivated colony's ROMG cycle position",
+    "maturityAgeDays": "max of merged colonies (D12)",
+    "atMRUOM": "recomputed against the shared Species MRUOM"
+  },
+
+  "harvest": {
+    "resetsRtfm": true,
+    "regrowsImmediately": false,
+    "note": "Harvest resets maturityAgeDays to 0; mycelium survives; the growth must fully re-mature before a second harvest (D21). No partial credit.",
+    "incrementsHarvestCount": true
+  },
+
+  "ecosystem": {
+    "stateMachine": ["healthy", "damaged", "collapsing", "collapsed"],
+    "damageTypes": ["bludgeoning", "slashing", "cold", "fire"],
+    "immuneToOthers": true,
+    "onDamage": "b/s/c/f damage from a failed save or while flanked halts all RTFM for 1 week; state = damaged",
+    "collapse": {
+      "trigger": "repeat b/s/c/f damage before RTFM resumes, or a critical fail",
+      "check": "roll d100; any growth taller than the roll collapses (loses potency, unharvestable)",
+      "heightUsed": "actual penalized current height at collapse time (D4)",
+      "escalation": "a second collapse trigger after the first collapses ALL remaining growths",
+      "clearing": "collapsed growths must be manually cleared before ecosystem RTFM can resume"
+    },
+    "plantGrowth": {
+      "onDamaged": "resets all RTFM cycles, restores damaged -> healthy",
+      "onHealthy": "accelerates growth: 1-action = 30 days, 8-hour = 365 days",
+      "perDay": 1
+    },
+    "autoResume": "damaged -> healthy after 1 week (ecosystemAutoResumeDays) if left unharmed"
+  }
+}

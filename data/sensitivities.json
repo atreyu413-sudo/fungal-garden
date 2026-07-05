@@ -1,0 +1,219 @@
+{
+  "$schema": "./schema/sensitivities.md",
+  "description": "All 33 fungal sensitivity rules, normalized from sensitivities.ts to the formal predicate grammar (see docs/02-Design-Decisions.md D10). Each rule has a trigger (predicate), an optional restriction and/or effect, and an appliesAt phase. The engine evaluates triggers generically against a Species' static traits plus (where noted) a Colony's live state. Array order is significant for competing forces* effects (D16); two rules are marked precedence:'absolute'.",
+
+  "grammar": {
+    "speciesStaticOperands": ["fungalType", "color", "pattern", "bioluminescent", "transparent", "heightUnits", "edible", "flavor", "hasFunction"],
+    "colonyOperands": ["stage", "myceliumContactPoints", "adjacentDistinctPatternCount", "adjacentToWhiteMycelium", "edgeAdjacent"],
+    "comparators": { "gt": ">", "gte": ">=", "lt": "<", "lte": "<=", "eq": "==", "in": "member of", "notIn": "not member of", "includes": "substring match (via patterns.json families)", "not": "not equal" },
+    "combinators": ["and", "or", "not"],
+    "phases": ["generation", "rtfmInitiation", "everyRomgCycle", "mature"],
+    "heightUnitsDefinition": "Intended total optimum height per D6: toadstool/mushroom = stemHeight + capHeight; shelfToadstool = capHeight; mold = moldHeight. Uses intended (pre-diagonal-penalty) value."
+  },
+
+  "rules": [
+    {
+      "id": "tallGrowthNeedsEdibleNeighbor",
+      "trigger": { "heightUnits": { "gt": 35 } },
+      "restriction": { "canMature": false },
+      "effect": { "unless": { "requiresEdibleNeighbor": true } },
+      "appliesAt": "rtfmInitiation"
+    },
+    {
+      "id": "shortToadstoolNeedsShade",
+      "trigger": { "fungalType": "toadstool", "heightUnits": { "lt": 20 } },
+      "restriction": { "requiresShade": true },
+      "appliesAt": "rtfmInitiation"
+    },
+    {
+      "id": "veryTallNeedsTripleContact",
+      "trigger": { "heightUnits": { "gt": 50 } },
+      "restriction": { "canMature": false },
+      "effect": { "unless": { "minMyceliumContactPoints": 3 } },
+      "appliesAt": "rtfmInitiation"
+    },
+    {
+      "id": "shelfCollapseUnsupported",
+      "trigger": { "fungalType": "shelfToadstool", "stage": "mature", "heightUnits": { "gt": 12 } },
+      "effect": { "collapse": { "unless": { "maturedGrowthAdjacentAtShellBottomEdge": true } } },
+      "appliesAt": "mature"
+    },
+    {
+      "id": "tallGrowthNoHealing",
+      "trigger": { "heightUnits": { "gt": 40 } },
+      "restriction": { "canHaveFunction": ["poison", "sporeVirility", "edible"] },
+      "appliesAt": "generation"
+    },
+    {
+      "id": "greyToadstoolMusky",
+      "trigger": { "fungalType": "toadstool", "color": "Grey", "heightUnits": { "lt": 10 } },
+      "effect": { "forcesOdor": "Musky" },
+      "appliesAt": "generation"
+    },
+    {
+      "id": "noEdgeGrowth",
+      "trigger": { "or": [{ "fungalType": "mold" }, { "pattern": { "includes": "Holed" } }] },
+      "restriction": { "cannotTouchEdge": true },
+      "appliesAt": "everyRomgCycle"
+    },
+    {
+      "id": "ringedVsSpotted",
+      "trigger": { "pattern": { "includes": "Ringed/Striped" } },
+      "restriction": { "cannotTouchPattern": "Spotted" },
+      "appliesAt": "everyRomgCycle"
+    },
+    {
+      "id": "blackPatternMushroomContact",
+      "trigger": { "fungalType": "mushroom", "pattern": { "includes": "Black" } },
+      "restriction": { "requiresWhiteNeighbor": true },
+      "appliesAt": "rtfmInitiation"
+    },
+    {
+      "id": "spottedToadstoolDoubleContact",
+      "trigger": { "fungalType": "toadstool", "pattern": { "includes": "Spotted" } },
+      "restriction": { "requiresNonBrownContact": 2 },
+      "appliesAt": "rtfmInitiation"
+    },
+    {
+      "id": "whiteRingedPoisonous",
+      "trigger": { "color": "White", "pattern": { "includes": "Ringed/Striped" } },
+      "effect": { "forcesPoisonous": true },
+      "appliesAt": "generation"
+    },
+    {
+      "id": "holedCannotTouch",
+      "trigger": { "pattern": { "includes": "Holed" } },
+      "restriction": { "cannotTouchPattern": "Holed" },
+      "appliesAt": "everyRomgCycle"
+    },
+    {
+      "id": "blackSpottedShelfPoisonous",
+      "trigger": { "fungalType": "shelfToadstool", "pattern": "Spotted Black" },
+      "effect": { "forcesPoisonous": true },
+      "appliesAt": "generation"
+    },
+    {
+      "id": "ringedBoostsGrowth",
+      "trigger": { "pattern": { "includes": "Ringed" }, "myceliumContactPoints": { "gt": 3 } },
+      "effect": { "forcesRtfmInitiation": true },
+      "appliesAt": "rtfmInitiation",
+      "note": "Per D17: satisfies the colony's contact/neighbor initiation gates (not the physical volva-fill requirement)."
+    },
+    {
+      "id": "mixedPatternAdjacencyBoost",
+      "trigger": { "adjacentDistinctPatternCount": { "gte": 2 } },
+      "effect": { "myceliumBonus": 1 },
+      "appliesAt": "everyRomgCycle"
+    },
+    {
+      "id": "patternedMoldFoulSmell",
+      "trigger": { "fungalType": "mold", "pattern": { "not": "No Pattern" } },
+      "effect": { "forcesOdor": "Foul Stench" },
+      "appliesAt": "generation"
+    },
+    {
+      "id": "blackToadstoolNeedsShade",
+      "trigger": { "fungalType": "toadstool", "color": "Black" },
+      "restriction": { "requiresShade": true },
+      "appliesAt": "rtfmInitiation"
+    },
+    {
+      "id": "primaryColorMushroomContact",
+      "trigger": { "fungalType": "mushroom", "color": { "in": ["Red", "Blue", "Yellow"] } },
+      "restriction": { "requiresBrownOrMonochromeContact": true },
+      "appliesAt": "rtfmInitiation"
+    },
+    {
+      "id": "yellowOrangeShelfEdible",
+      "trigger": { "fungalType": "shelfToadstool", "color": { "in": ["Yellow", "Orange"] } },
+      "effect": { "forcesEdible": true },
+      "appliesAt": "generation"
+    },
+    {
+      "id": "indigoPoisonous",
+      "trigger": { "color": "Indigo" },
+      "effect": { "forcesPoisonous": true },
+      "appliesAt": "generation"
+    },
+    {
+      "id": "violetWhiteYellowToadstoolMultiColony",
+      "trigger": { "fungalType": "toadstool", "color": { "in": ["Violet", "White", "Yellow"] } },
+      "restriction": { "requiresSeparateColonies": 2 },
+      "appliesAt": "rtfmInitiation"
+    },
+    {
+      "id": "blueMoldEdible",
+      "trigger": { "fungalType": "mold", "color": "Blue" },
+      "effect": { "forcesEdible": true },
+      "appliesAt": "generation"
+    },
+    {
+      "id": "chromaticShelfVsGreyMold",
+      "trigger": { "fungalType": "shelfToadstool", "color": { "notIn": ["Brown", "Black", "White", "Grey"] } },
+      "restriction": { "cannotTouchColor": "Grey", "cannotTouchFungalType": "mold" },
+      "appliesAt": "everyRomgCycle"
+    },
+    {
+      "id": "whiteMoldExclusion",
+      "trigger": { "fungalType": "mold", "color": "White" },
+      "restriction": { "cannotTouchColor": ["Pink", "Grey", "Blue"] },
+      "appliesAt": "everyRomgCycle"
+    },
+    {
+      "id": "redToadstoolDoubleBrownContact",
+      "trigger": { "fungalType": "toadstool", "color": "Red" },
+      "restriction": { "requiresBrownContact": 2 },
+      "appliesAt": "rtfmInitiation"
+    },
+    {
+      "id": "greyNeverBioluminescent",
+      "trigger": { "color": "Grey" },
+      "restriction": { "forcesBioluminescence": false },
+      "appliesAt": "generation",
+      "precedence": "absolute"
+    },
+    {
+      "id": "greenBlackPatternPoisonous",
+      "trigger": { "color": "Green", "pattern": { "includes": "Black" } },
+      "effect": { "forcesPoisonous": true },
+      "appliesAt": "generation"
+    },
+    {
+      "id": "orangeMoldNeedsEdibleContact",
+      "trigger": { "fungalType": "mold", "color": "Orange" },
+      "restriction": { "requiresEdibleNeighbor": true },
+      "appliesAt": "rtfmInitiation"
+    },
+    {
+      "id": "brownIgnoresShade",
+      "trigger": { "color": "Brown" },
+      "effect": { "requiresShade": false, "overridesAllShadeRules": true },
+      "appliesAt": "generation"
+    },
+    {
+      "id": "violetShrinksNearWhite",
+      "trigger": { "color": "Violet", "adjacentToWhiteMycelium": true, "fungalType": { "not": "mold" } },
+      "effect": { "heightPenalty": 1, "appliesTo": "allDimensions" },
+      "appliesAt": "everyRomgCycle"
+    },
+    {
+      "id": "violetMushroomSavory",
+      "trigger": { "fungalType": "mushroom", "color": "Violet" },
+      "effect": { "forcesFlavor": "Savory", "forcesFlavorIntensity": "Rich" },
+      "appliesAt": "generation"
+    },
+    {
+      "id": "tartAlwaysOverpowering",
+      "trigger": { "flavor": "Tart" },
+      "effect": { "forcesFlavorIntensity": "Overpowering" },
+      "appliesAt": "generation",
+      "precedence": "absolute"
+    },
+    {
+      "id": "bioluminescentNoScent",
+      "trigger": { "bioluminescent": true },
+      "effect": { "forcesOdor": "No Scent" },
+      "appliesAt": "generation"
+    }
+  ]
+}

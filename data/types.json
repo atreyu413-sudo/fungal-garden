@@ -1,0 +1,137 @@
+{
+  "$schema": "./schema/types.md",
+  "description": "Fungal type generation and per-type dimension/rate formulas. Transcribed from generation-tables.ts (FUNGAL_TYPE_TABLE, DIMENSION_FORMULAS, BIOLUMINESCENCE_TABLE, TRANSPARENCY_TABLE) and RULES-SPEC.md sections 2, 5, 7. Dice formulas are strings evaluated by the engine's seeded roller. Rates are given with their native unit; the engine converts to days via time.ts toDays() at generation. See docs/02-Design-Decisions.md D5 (month=30), D11 (shelf cap geometry: 2d10 governs), D18 (bioluminescence rarity).",
+
+  "fungalTypeTable": {
+    "die": "d10",
+    "table": [
+      { "min": 1, "max": 4, "value": "toadstool" },
+      { "min": 5, "max": 5, "value": "shelfToadstool" },
+      { "min": 6, "max": 8, "value": "mold" },
+      { "min": 9, "max": 10, "value": "mushroom" }
+    ]
+  },
+
+  "types": {
+    "toadstool": {
+      "displayName": "Traditionally Shaped Toadstool",
+      "shape": {
+        "form": "capped",
+        "base": "round volva",
+        "growth": "stem grows straight up into a cap wider than the base",
+        "canGrowDiagonal": true
+      },
+      "dimensions": {
+        "optimumVolvaDiameter": { "formula": "d8", "rounding": "down", "unit": "hexes" },
+        "optimumStemHeight": { "formula": "8d4", "unit": "hexes" },
+        "optimumCapDiameter": { "formula": "volvaDiameter + d12", "unit": "hexes", "derivedFrom": "volvaDiameter" },
+        "optimumCapHeight": { "formula": "2d12", "rounding": "up", "unit": "hexes" }
+      },
+      "rates": {
+        "rtfm": { "formula": "d6", "unit": "months" },
+        "mruom": { "formula": "2d4", "unit": "hexes" },
+        "romg": { "formula": "d8", "unit": "weeks" }
+      },
+      "totalHeight": "stemHeight + capHeight"
+    },
+
+    "shelfToadstool": {
+      "displayName": "Shelf Toadstool",
+      "shape": {
+        "form": "shelf",
+        "base": "cap grows directly out of the shell as a horizontal semicircle",
+        "growth": "base length = cap diameter; height = cap radius",
+        "canGrowDiagonal": false
+      },
+      "dimensions": {
+        "optimumCapDiameter": { "formula": "2d10", "unit": "hexes" },
+        "optimumCapHeight": { "formula": "capDiameter / 2", "rounding": "up", "unit": "hexes", "derivedFrom": "capDiameter" }
+      },
+      "rates": {
+        "rtfm": { "formula": "d6", "unit": "months" },
+        "mruom": { "formula": "3d4", "unit": "hexes" },
+        "romg": { "formula": "d8", "unit": "weeks" }
+      },
+      "totalHeight": "capHeight"
+    },
+
+    "mold": {
+      "displayName": "Mold",
+      "shape": {
+        "form": "column",
+        "base": "grows straight up, uniform width base-to-top",
+        "growth": "uniform column",
+        "canGrowDiagonal": true
+      },
+      "dimensions": {
+        "optimumHeight": { "formula": "d4", "rounding": "down", "unit": "hexes" }
+      },
+      "rates": {
+        "rtfm": { "formula": "d4", "unit": "weeks" },
+        "mruom": { "formula": "5d4", "unit": "hexes" },
+        "romg": { "formula": "d4", "unit": "weeks" }
+      },
+      "totalHeight": "moldHeight",
+      "notes": "Default opaque (transparency not rolled) unless a poison special product forces transparency. Begins RTFM with only 1 mycelium unit + shade; fully matured only at MRUOM; harvestable area = MRUOM. Produces 1 spore/MES per growth regardless of size."
+    },
+
+    "mushroom": {
+      "displayName": "Mushroom",
+      "shape": {
+        "form": "capped",
+        "base": "round volva",
+        "growth": "stem grows straight up into a cap wider than the base",
+        "canGrowDiagonal": true
+      },
+      "dimensions": {
+        "optimumVolvaDiameter": { "formula": "d6", "rounding": "down", "unit": "hexes" },
+        "optimumStemHeight": { "formula": "3d4", "unit": "hexes" },
+        "optimumCapDiameter": { "formula": "volvaDiameter + d8", "unit": "hexes", "derivedFrom": "volvaDiameter" },
+        "optimumCapHeight": { "formula": "4d4", "unit": "hexes" }
+      },
+      "rates": {
+        "rtfm": { "formula": "d6", "unit": "months" },
+        "mruom": { "formula": "2d4", "unit": "hexes" },
+        "romg": { "formula": "d8", "unit": "weeks" }
+      },
+      "totalHeight": "stemHeight + capHeight",
+      "notes": "Always edible; no function roll (see functions.json). No transparency-forced exceptions."
+    }
+  },
+
+  "rounding": {
+    "optimumVolvaDiameter": "down",
+    "optimumTraditionalCapHeight": "up",
+    "optimumTraditionalCapRadius": "volva radius added, not independently rolled",
+    "optimumShelfCapHeight": "up",
+    "optimumMoldHeight": "down"
+  },
+
+  "appearance": {
+    "note": "Bioluminescence and Transparency are per-growth appearance rolls (RULES-SPEC.md section 7) that have no dedicated data file; they live here alongside type generation. Color and pattern have their own files (colors.json, patterns.json).",
+    "bioluminescence": {
+      "die": "d100",
+      "description": "Only exact multiples of 25 are bioluminescent (4% total). Normalized from four thesis sub-bands. See D18 — kept intentionally rare, not a typo.",
+      "table": [
+        { "min": 1, "max": 24, "value": false },
+        { "min": 25, "max": 25, "value": true },
+        { "min": 26, "max": 49, "value": false },
+        { "min": 50, "max": 50, "value": true },
+        { "min": 51, "max": 74, "value": false },
+        { "min": 75, "max": 75, "value": true },
+        { "min": 76, "max": 99, "value": false },
+        { "min": 100, "max": 100, "value": true }
+      ]
+    },
+    "transparency": {
+      "die": "d100",
+      "appliesTo": "non-mold fungi",
+      "description": "Mold is opaque by default (not rolled). Poison special product 'Makes Essence Of Ether' can force transparency regardless (see functions.json).",
+      "table": [
+        { "min": 1, "max": 45, "value": false },
+        { "min": 46, "max": 55, "value": true },
+        { "min": 56, "max": 100, "value": false }
+      ]
+    }
+  }
+}

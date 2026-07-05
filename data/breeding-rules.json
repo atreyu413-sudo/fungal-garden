@@ -1,0 +1,100 @@
+{
+  "$schema": "./schema/breeding-rules.md",
+  "description": "Breeding / crossbreeding resolution data. From breeding.ts and RULES-SPEC.md section 9. Resolution is a coin flip per stat row against the two parent Species, with exceptions applied BEFORE the relevant flip. Includes the function/sensitivity reverse cause-index authored per decision D9 (option 1, build the reverse index).",
+
+  "cadence": {
+    "newHybridsPerDawn": 1,
+    "replicationNote": "The same hybrid may be replicated (a new Colony of the SAME Species) on subsequent dawns until a new hybrid roll is made, at which point old replicate stats are lost. A replicate creates no new Species and no new registry entry.",
+    "requiresTwoMaturedParents": true,
+    "cultivationRequiresEmptyTile": true,
+    "generationFormula": "max(parentA.generation, parentB.generation) + 1"
+  },
+
+  "statRows": [
+    "fungalType",
+    "rtfmDays",
+    "mruom",
+    "romgDays",
+    "color",
+    "pattern",
+    "bioluminescent",
+    "transparent",
+    "volvaDiameter",
+    "stemHeight",
+    "traditionalCapHeight",
+    "traditionalCapRadius",
+    "shelfCapRadius",
+    "shelfCapDiameter",
+    "moldGrowthHeight",
+    "function1",
+    "function2",
+    "sensitivity1",
+    "sensitivity2",
+    "flavor1",
+    "flavor2",
+    "flavorIntensity",
+    "odor"
+  ],
+  "statRowNotes": {
+    "resolveFungalTypeFirst": "fungalType (row 1) resolves first; type-specific dimension rows only apply to the resolved type (D20).",
+    "typeMismatchReroll": "If a coin flip would inherit a dimension from a parent of a different type than the resolved offspring, re-roll that dimension from the resolved type's own base formula in types.json (D20) — the same no-crossover logic as moldRtfmNoCrossover.",
+    "traditionalCapRadius": "derived: volva radius added, per the resolved parent's volva",
+    "shelfCapDiameter": "Per D11 (generation-tables governs): shelf cap diameter = 2d10 from types.json; the breeding-sheet 'half of traditional cap radius' note is treated as stale. Shelf cap height = capDiameter / 2 (round up).",
+    "shelfCapDiameterConflict": "D11 is flagged OPEN; if the owner chooses the breeding-sheet derivation instead, change this row's resolution to derive from the traditional parent's cap radius."
+  },
+
+  "exceptions": {
+    "mushroomAlwaysEdible": {
+      "rule": "Mushrooms can never carry a non-edible function regardless of what a coin flip would assign. Checked when resolvedFungalType === 'mushroom'.",
+      "appliesTo": ["function1", "function2"]
+    },
+    "moldRtfmNoCrossover": {
+      "rule": "Mold's RTFM formula never crosses to a non-mold offspring or vice versa. If the flip would assign a mold parent's rtfmDays to a non-mold result (or the reverse), re-roll RTFM from the resolved fungalType's own base formula in types.json.",
+      "appliesTo": ["rtfmDays"]
+    },
+    "poisonTieBreakNotStack": {
+      "rule": "If BOTH parents have the poison function, effects do not stack: coin-flip which single parent's poison effect is inherited.",
+      "appliesTo": ["function1", "function2"]
+    },
+    "sporeVirilityTieBreakNotStack": {
+      "rule": "Same non-stacking tie-break as poison, for spore virility.",
+      "appliesTo": ["function1", "function2"]
+    },
+    "functionSensitivityInheritedAsRerollUnlessMatching": {
+      "rule": "Functions and sensitivities are NOT inherited as a package with their triggering condition. If both parents display the SAME function/sensitivity it carries over directly. If they differ (or only one parent has it), the offspring's function/sensitivity is re-rolled at random from the union of physical-trait sets that could have caused either parent's version (see reverseCauseIndex).",
+      "appliesTo": ["function1", "function2", "sensitivity1", "sensitivity2"]
+    },
+    "flavorsAndFunctionsMayStack": {
+      "rule": "Flavors and functions may each stack from both parents (independently rolled per row) — the default case, listed for completeness against the non-stacking exceptions above.",
+      "appliesTo": ["flavor1", "flavor2", "function1", "function2"]
+    }
+  },
+
+  "reverseCauseIndex": {
+    "description": "D9 deliverable. Maps a function category / sensitivity outcome back to the physical-trait sets that could have caused it, so the reroll exception (functionSensitivityInheritedAsRerollUnlessMatching) can pick uniformly from the union of both parents' causal sets. 'functionRoll' entries mean the outcome can also arise from the base d10 function table (functions.json), so a reroll may instead re-roll that table for the resolved type.",
+    "functions": {
+      "poison": [
+        { "source": "whiteRingedPoisonous", "traits": { "color": "White", "pattern": { "includes": "Ringed/Striped" } } },
+        { "source": "blackSpottedShelfPoisonous", "traits": { "fungalType": "shelfToadstool", "pattern": "Spotted Black" } },
+        { "source": "indigoPoisonous", "traits": { "color": "Indigo" } },
+        { "source": "greenBlackPatternPoisonous", "traits": { "color": "Green", "pattern": { "includes": "Black" } } },
+        { "source": "functionRoll", "table": "functions.functionType", "appliesTo": ["toadstool", "mold"] }
+      ],
+      "edible": [
+        { "source": "mushroomAlwaysEdible", "traits": { "fungalType": "mushroom" } },
+        { "source": "yellowOrangeShelfEdible", "traits": { "fungalType": "shelfToadstool", "color": { "in": ["Yellow", "Orange"] } } },
+        { "source": "blueMoldEdible", "traits": { "fungalType": "mold", "color": "Blue" } }
+      ],
+      "healing": [
+        { "source": "functionRoll", "table": "functions.functionType", "appliesTo": ["toadstool", "mold"], "excludedWhen": { "heightUnits": { "gt": 40 } } }
+      ],
+      "sporeVirility": [
+        { "source": "functionRoll", "table": "functions.functionType", "appliesTo": ["toadstool", "mold"] }
+      ]
+    },
+    "sensitivities": {
+      "note": "A sensitivity's causal trait set is exactly its trigger predicate in sensitivities.json. When rerolling a sensitivity, draw uniformly from the union of both parents' triggering rule ids; the chosen rule's trigger defines the physical traits to reconstruct. No separate table is needed here — sensitivities.json is the index.",
+      "resolvedBy": "sensitivities.json rule triggers"
+    }
+  }
+}

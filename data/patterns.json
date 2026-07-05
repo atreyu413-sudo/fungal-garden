@@ -1,0 +1,31 @@
+{
+  "$schema": "./schema/roll-table.md",
+  "trait": "pattern",
+  "die": "d100",
+  "description": "Pattern generation table (d100). Transcribed from generation-tables.ts PATTERN_TABLE. 'No Pattern' occupies alternating bands (50% total). The 'families' map supports substring matching used by sensitivity triggers (e.g. patternIncludes 'Ringed/Striped', 'Spotted', 'Black').",
+  "table": [
+    { "min": 1, "max": 10, "value": "Holed" },
+    { "min": 11, "max": 20, "value": "No Pattern" },
+    { "min": 21, "max": 30, "value": "Ringed/Striped White" },
+    { "min": 31, "max": 40, "value": "No Pattern" },
+    { "min": 41, "max": 50, "value": "Ringed/Striped Black" },
+    { "min": 51, "max": 60, "value": "No Pattern" },
+    { "min": 61, "max": 70, "value": "Spotted White" },
+    { "min": 71, "max": 80, "value": "No Pattern" },
+    { "min": 81, "max": 90, "value": "Spotted Black" },
+    { "min": 91, "max": 100, "value": "No Pattern" }
+  ],
+  "patterns": [
+    "Holed", "No Pattern", "Ringed/Striped White", "Ringed/Striped Black",
+    "Spotted White", "Spotted Black"
+  ],
+  "families": {
+    "Holed": { "includes": ["Holed"] },
+    "No Pattern": { "includes": [] },
+    "Ringed/Striped White": { "includes": ["Ringed/Striped", "Ringed", "White"] },
+    "Ringed/Striped Black": { "includes": ["Ringed/Striped", "Ringed", "Black"] },
+    "Spotted White": { "includes": ["Spotted", "White"] },
+    "Spotted Black": { "includes": ["Spotted", "Black"] }
+  },
+  "note": "'includes' is the set of substrings a pattern matches for trigger predicates. A trigger patternIncludes:'Ringed' matches both Ringed/Striped patterns; patternIncludes:'Black' matches Ringed/Striped Black and Spotted Black."
+}

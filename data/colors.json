@@ -1,0 +1,40 @@
+{
+  "$schema": "./schema/roll-table.md",
+  "trait": "color",
+  "die": "d100",
+  "description": "Color generation table (d100). Transcribed from generation-tables.ts COLOR_TABLE. Brown is heavily weighted (~40%) across many bands; this is intentional (see docs/02-Design-Decisions.md minor notes). Groupings below are consumed by sensitivity rules (colorIn / colorNotIn / brown handling).",
+  "table": [
+    { "min": 1, "max": 5, "value": "Black" },
+    { "min": 6, "max": 10, "value": "Brown" },
+    { "min": 11, "max": 15, "value": "White" },
+    { "min": 16, "max": 18, "value": "Orange" },
+    { "min": 19, "max": 23, "value": "Brown" },
+    { "min": 24, "max": 26, "value": "Green" },
+    { "min": 27, "max": 31, "value": "White" },
+    { "min": 32, "max": 36, "value": "Brown" },
+    { "min": 37, "max": 41, "value": "Blue" },
+    { "min": 42, "max": 46, "value": "Brown" },
+    { "min": 47, "max": 51, "value": "Red" },
+    { "min": 52, "max": 56, "value": "Yellow" },
+    { "min": 57, "max": 61, "value": "Brown" },
+    { "min": 62, "max": 64, "value": "Indigo" },
+    { "min": 65, "max": 69, "value": "Brown" },
+    { "min": 70, "max": 74, "value": "White" },
+    { "min": 75, "max": 77, "value": "Violet" },
+    { "min": 78, "max": 80, "value": "Brown" },
+    { "min": 81, "max": 85, "value": "Pink" },
+    { "min": 86, "max": 90, "value": "Grey" },
+    { "min": 91, "max": 95, "value": "Brown" },
+    { "min": 96, "max": 100, "value": "Black" }
+  ],
+  "colors": [
+    "Black", "Brown", "White", "Orange", "Green", "Blue", "Red",
+    "Yellow", "Indigo", "Violet", "Pink", "Grey"
+  ],
+  "groupings": {
+    "primary": ["Red", "Blue", "Yellow"],
+    "monochrome": ["Black", "White", "Grey"],
+    "brown": ["Brown"],
+    "note": "'brownOrMonochrome' contact requirement (primaryColorMushroomContact) = Brown plus any monochrome color."
+  }
+}
