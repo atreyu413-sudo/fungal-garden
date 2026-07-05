@@ -1,0 +1,343 @@
+import { RollTableEntry } from './types';
+
+// Magical Effect Spore (MES) system. A bioluminescent growth (not touching brown)
+// produces 1 MES/day fully matured (mold: 1 per growth regardless of size).
+// Roll D100 to determine which named effect + MES cost a growth's spores carry.
+// Multiple growths can carry different named effects; only same-named MES pool
+// together to pay a given effect's cost.
+
+export interface MesRollResult {
+  name: string;
+  cost: number;
+}
+
+export const MES_ROLL_TABLE: RollTableEntry<MesRollResult>[] = [
+  { min: 1, max: 1, value: { name: 'Speed Demon', cost: 2 } },
+  { min: 2, max: 2, value: { name: 'Sightless Sickness', cost: 3 } },
+  { min: 3, max: 3, value: { name: "Puff O' Courage", cost: 4 } },
+  { min: 4, max: 4, value: { name: "Bear's Endurance", cost: 3 } },
+  { min: 5, max: 5, value: { name: "Ol' Chum", cost: 5 } },
+  { min: 6, max: 6, value: { name: 'Speed Demon', cost: 3 } },
+  { min: 7, max: 7, value: { name: 'Sightless Sickness', cost: 4 } },
+  { min: 8, max: 8, value: { name: "Puff O' Courage", cost: 3 } },
+  { min: 9, max: 9, value: { name: "Bear's Endurance", cost: 4 } },
+  { min: 10, max: 10, value: { name: 'Zombie Maker', cost: 6 } },
+  { min: 11, max: 11, value: { name: 'Speed Demon', cost: 4 } },
+  { min: 12, max: 12, value: { name: 'Filth Fever', cost: 3 } },
+  { min: 13, max: 13, value: { name: 'Adrenaline Rush', cost: 4 } },
+  { min: 14, max: 14, value: { name: "Owl's Wisdom", cost: 3 } },
+  { min: 15, max: 15, value: { name: 'Possum', cost: 5 } },
+  { min: 16, max: 16, value: { name: 'Second Wind', cost: 2 } },
+  { min: 17, max: 17, value: { name: 'Filth Fever', cost: 4 } },
+  { min: 18, max: 18, value: { name: 'Adrenaline Rush', cost: 3 } },
+  { min: 19, max: 19, value: { name: "Owl's Wisdom", cost: 4 } },
+  { min: 20, max: 20, value: { name: 'Nap Time', cost: 6 } },
+  { min: 21, max: 21, value: { name: 'Second Wind', cost: 3 } },
+  { min: 22, max: 22, value: { name: 'Flesh Rot', cost: 4 } },
+  { min: 23, max: 23, value: { name: 'Twitchy Gidget', cost: 3 } },
+  { min: 24, max: 24, value: { name: "Fox's Cunning", cost: 4 } },
+  { min: 25, max: 25, value: { name: 'Possession', cost: 6 } },
+  { min: 26, max: 26, value: { name: 'Second Wind', cost: 4 } },
+  { min: 27, max: 27, value: { name: 'Flesh Rot', cost: 3 } },
+  { min: 28, max: 28, value: { name: 'Twitchy Gidget', cost: 4 } },
+  { min: 29, max: 29, value: { name: "Fox's Cunning", cost: 3 } },
+  { min: 30, max: 30, value: { name: 'Chill Vibez', cost: 5 } },
+  { min: 31, max: 31, value: { name: 'Bulk Buddy', cost: 2 } },
+  { min: 32, max: 32, value: { name: 'Mindfire', cost: 3 } },
+  { min: 33, max: 33, value: { name: 'Squirrel Brain', cost: 4 } },
+  { min: 34, max: 34, value: { name: "Eagle's Splendor", cost: 3 } },
+  { min: 35, max: 35, value: { name: 'Medusa', cost: 6 } },
+  { min: 36, max: 36, value: { name: 'Bulk Buddy', cost: 3 } },
+  { min: 37, max: 37, value: { name: 'Mindfire', cost: 4 } },
+  { min: 38, max: 38, value: { name: 'Squirrel Brain', cost: 3 } },
+  { min: 39, max: 39, value: { name: "Eagle's Splendor", cost: 4 } },
+  { min: 40, max: 40, value: { name: 'Skunk', cost: 5 } },
+  { min: 41, max: 41, value: { name: 'Bulk Buddy', cost: 4 } },
+  { min: 42, max: 42, value: { name: 'Cesear', cost: 3 } },
+  { min: 43, max: 43, value: { name: 'Common Crazies', cost: 4 } },
+  { min: 44, max: 44, value: { name: 'Distraction', cost: 3 } },
+  { min: 45, max: 45, value: { name: 'Downer', cost: 6 } },
+  { min: 46, max: 46, value: { name: 'Deaf Thief', cost: 2 } },
+  { min: 47, max: 47, value: { name: 'Cesear', cost: 4 } },
+  { min: 48, max: 48, value: { name: 'Common Crazies', cost: 3 } },
+  { min: 49, max: 49, value: { name: 'Distraction', cost: 4 } },
+  { min: 50, max: 50, value: { name: 'Re-Memory', cost: 7 } },
+  { min: 51, max: 51, value: { name: 'Deaf Thief', cost: 3 } },
+  { min: 52, max: 52, value: { name: 'Slimy Doom', cost: 4 } },
+  { min: 53, max: 53, value: { name: 'Blind Bandit', cost: 3 } },
+  { min: 54, max: 54, value: { name: 'The Matador', cost: 4 } },
+  { min: 55, max: 55, value: { name: "Ol' Chum", cost: 6 } },
+  { min: 56, max: 56, value: { name: 'Deaf Thief', cost: 4 } },
+  { min: 57, max: 57, value: { name: 'Slimy Doom', cost: 3 } },
+  { min: 58, max: 58, value: { name: 'Blind Bandit', cost: 4 } },
+  { min: 59, max: 59, value: { name: 'The Matador', cost: 3 } },
+  { min: 60, max: 60, value: { name: 'Zombie Maker', cost: 5 } },
+  { min: 61, max: 61, value: { name: 'Itis', cost: 2 } },
+  { min: 62, max: 62, value: { name: 'Life Lover', cost: 3 } },
+  { min: 63, max: 63, value: { name: 'Sucker Punch', cost: 4 } },
+  { min: 64, max: 64, value: { name: 'Disorientator', cost: 3 } },
+  { min: 65, max: 65, value: { name: 'Possum', cost: 6 } },
+  { min: 66, max: 66, value: { name: 'Itis', cost: 3 } },
+  { min: 67, max: 67, value: { name: 'Life Lover', cost: 4 } },
+  { min: 68, max: 68, value: { name: 'Sucker Punch', cost: 3 } },
+  { min: 69, max: 69, value: { name: 'Disorientator', cost: 4 } },
+  { min: 70, max: 70, value: { name: 'Nap Time', cost: 5 } },
+  { min: 71, max: 71, value: { name: 'Itis', cost: 4 } },
+  { min: 72, max: 72, value: { name: 'Happy Gas', cost: 3 } },
+  { min: 73, max: 73, value: { name: 'Lucky Shot', cost: 4 } },
+  { min: 74, max: 74, value: { name: "Charmed, I'm Sure", cost: 3 } },
+  { min: 75, max: 75, value: { name: 'Truesight', cost: 6 } },
+  { min: 76, max: 76, value: { name: 'Hedge Better', cost: 2 } },
+  { min: 77, max: 77, value: { name: 'Happy Gas', cost: 4 } },
+  { min: 78, max: 78, value: { name: 'Lucky Shot', cost: 3 } },
+  { min: 79, max: 79, value: { name: "Charmed, I'm Sure", cost: 4 } },
+  { min: 80, max: 80, value: { name: 'Chill Vibez', cost: 6 } },
+  { min: 81, max: 81, value: { name: 'Hedge Better', cost: 3 } },
+  { min: 82, max: 82, value: { name: 'The T', cost: 4 } },
+  { min: 83, max: 83, value: { name: "Cat's Grace", cost: 3 } },
+  { min: 84, max: 84, value: { name: 'Ask The Scarecrow', cost: 4 } },
+  { min: 85, max: 85, value: { name: 'Medusa', cost: 5 } },
+  { min: 86, max: 86, value: { name: 'Hedge Better', cost: 4 } },
+  { min: 87, max: 87, value: { name: 'The T', cost: 3 } },
+  { min: 88, max: 88, value: { name: "Cat's Grace", cost: 4 } },
+  { min: 89, max: 89, value: { name: 'Ask The Scarecrow', cost: 3 } },
+  { min: 90, max: 90, value: { name: 'Skunk', cost: 6 } },
+  { min: 91, max: 91, value: { name: "Coward's Bane", cost: 3 } },
+  { min: 92, max: 92, value: { name: 'Disability, Check', cost: 4 } },
+  { min: 93, max: 93, value: { name: "Bull's Strength", cost: 3 } },
+  { min: 94, max: 94, value: { name: 'Simmer Down', cost: 4 } },
+  { min: 95, max: 95, value: { name: 'Downer', cost: 5 } },
+  { min: 96, max: 96, value: { name: "Coward's Bane", cost: 4 } },
+  { min: 97, max: 97, value: { name: 'Disability, Check', cost: 3 } },
+  { min: 98, max: 98, value: { name: "Bull's Strength", cost: 4 } },
+  { min: 99, max: 99, value: { name: 'Simmer Down', cost: 3 } },
+  { min: 100, max: 100, value: { name: 'Chakra Shocker', cost: 8 } },
+];
+
+export interface MesEffectDescription {
+  spellAnalog: string;
+  description: string;
+}
+
+// Keyed by effect name. Rolls sharing a name (e.g. "Speed Demon" at 1, 6, 11)
+// share this single description; only the MES cost differs per roll.
+export const MES_EFFECT_DESCRIPTIONS: Record<string, MesEffectDescription> = {
+  'Speed Demon': {
+    spellAnalog: 'Gift Of Alacrity',
+    description: 'Target adds 1D8 to its initiative rolls.',
+  },
+  'Sightless Sickness': {
+    spellAnalog: 'Contagion (Wisdom)',
+    description: 'Target is blinded and has disadvantage on Wisdom checks and saving throws.',
+  },
+  "Puff O' Courage": {
+    spellAnalog: 'Heroism',
+    description:
+      "Target is immune to being frightened and gains temporary hit points equal to Ogeez's spellcasting ability modifier at the start of each of its turns.",
+  },
+  "Bear's Endurance": {
+    spellAnalog: 'Enhance Ability',
+    description: 'Target has advantage on Constitution checks and gains 2d6 temporary hit points.',
+  },
+  "Ol' Chum": {
+    spellAnalog: 'Fast Friends',
+    description:
+      "Target performs services or activities Ogeez asks of it. New tasks can be assigned when a prior one completes. The target may attempt a Wisdom save (advantage if it's being fought) to end the effect if the task would harm it or conflicts with its nature.",
+  },
+  'Filth Fever': {
+    spellAnalog: 'Contagion (Strength)',
+    description: 'A raging fever gives the target disadvantage on Strength checks, saves, and attack rolls.',
+  },
+  'Adrenaline Rush': {
+    spellAnalog: 'Haste',
+    description:
+      "Target's speed doubles, it gains +2 AC, advantage on Dexterity saves, and an extra limited action each turn. When the effect ends the target is incapacitated until after its next turn.",
+  },
+  "Owl's Wisdom": {
+    spellAnalog: 'Enhance Ability',
+    description: 'Target has advantage on Wisdom checks.',
+  },
+  Possum: {
+    spellAnalog: 'Feign Death',
+    description:
+      'Target appears dead to inspection and detection magic, is blinded and incapacitated, speed drops to 0, and it resists all damage except psychic. Active disease/poison is suspended for the duration.',
+  },
+  'Second Wind': {
+    spellAnalog: 'False Life',
+    description: 'Target gains 1D4+4 temporary hit points.',
+  },
+  'Zombie Maker': {
+    spellAnalog: 'Contact Other Plane',
+    description: "Target can't take actions, understand speech, read, or speak beyond gibberish.",
+  },
+  'Nap Time': {
+    spellAnalog: 'Catnap',
+    description:
+      "Target falls unconscious; damage or being shaken/slapped awake ends it early. A full duration grants the benefit of a short rest and immunity to the effect until its next long rest.",
+  },
+  'Flesh Rot': {
+    spellAnalog: 'Contagion (Charisma)',
+    description: "Target's flesh decays: disadvantage on Charisma checks and vulnerability to all damage.",
+  },
+  'Twitchy Gidget': {
+    spellAnalog: 'Freedom Of Movement',
+    description:
+      "Target ignores difficult terrain, can't have its speed reduced or be paralyzed/restrained by magic, can spend 5 ft of movement to auto-escape nonmagical restraints, and takes no penalty underwater.",
+  },
+  "Fox's Cunning": {
+    spellAnalog: 'Enhance Ability',
+    description: 'Target has advantage on Intelligence checks.',
+  },
+  Possession: {
+    spellAnalog: 'Crown Of Madness',
+    description:
+      "Target must use its action before moving each turn to melee-attack a creature Ogeez mentally chooses, or act normally if none are chosen or in reach.",
+  },
+  'Chill Vibez': {
+    spellAnalog: 'Calm Emotions',
+    description:
+      'A chosen hostile creature becomes indifferent toward targets of Ogeez\'s choice until attacked or harmed, or it witnesses a friend harmed.',
+  },
+  'Bulk Buddy': {
+    spellAnalog: 'Aid',
+    description: "Target's hit point maximum and current hit points increase by 5.",
+  },
+  Mindfire: {
+    spellAnalog: 'Contagion (Intelligence) / Confusion',
+    description:
+      "Target's mind turns feverish: disadvantage on Intelligence checks and saves, and it behaves as though under Confusion during combat.",
+  },
+  'Squirrel Brain': {
+    spellAnalog: 'Kinetic Jaunt',
+    description:
+      "Target's walking speed increases by 10 ft, it doesn't provoke opportunity attacks, and can move through other creatures' spaces (taking 1D8 force damage and being shunted back if it ends there).",
+  },
+  "Eagle's Splendor": {
+    spellAnalog: 'Enhance Ability',
+    description: 'Target has advantage on Charisma checks.',
+  },
+  Medusa: {
+    spellAnalog: 'Incite Greed',
+    description:
+      "Target can only use its movement to approach Ogeez safely, and while within 5 feet it can't move, transfixed by the fungal growths.",
+  },
+  Skunk: {
+    spellAnalog: 'Stinking Cloud',
+    description: 'Target succumbs to retching and reeling.',
+  },
+  Cesear: {
+    spellAnalog: 'Contagion (Dexterity)',
+    description: 'Target shakes uncontrollably: disadvantage on Dexterity checks, saves, and attack rolls.',
+  },
+  'Common Crazies': {
+    spellAnalog: 'Confusion',
+    description:
+      "Target's mind twists with delusion; it can't take reactions and rolls D10 each turn for random behavior (move randomly, do nothing, attack a random creature in reach, or act normally).",
+  },
+  Distraction: {
+    spellAnalog: 'Enthrall',
+    description: 'Target has disadvantage on Perception checks to notice anyone but Ogeez, while it can see Ogeez.',
+  },
+  Downer: {
+    spellAnalog: 'Slow',
+    description:
+      "Target's speed is halved, takes -2 to AC and Dex saves, can't use reactions, and is limited to one action or bonus action per turn (and only one melee/ranged attack). Casting a 1-action spell risks a delay per a D20 check.",
+  },
+  'Deaf Thief': {
+    spellAnalog: 'Blindness/Deafness',
+    description: 'Target goes deaf.',
+  },
+  'Re-Memory': {
+    spellAnalog: 'Modify Memory',
+    description:
+      "Target is incapacitated but can still hear Ogeez; any damage or spell targeting ends the effect with no memory change. Otherwise Ogeez can erase, sharpen, alter, or fabricate the target's memory of an event from the last 24 hours (max 10 minutes long), taking hold once the description is finished. Greater Restoration reverses it.",
+  },
+  'Slimy Doom': {
+    spellAnalog: 'Contagion (Constitution)',
+    description:
+      'Target bleeds uncontrollably: disadvantage on Constitution checks and saves, and is stunned until the end of its next turn whenever it takes damage.',
+  },
+  'Blind Bandit': {
+    spellAnalog: 'Blindness/Deafness',
+    description: 'Target goes blind.',
+  },
+  'The Matador': {
+    spellAnalog: 'Compelled Duel',
+    description:
+      "Target is drawn to Ogeez: disadvantage attacking anyone else, and must succeed a Wisdom save to move more than 30 ft away. Ends if Ogeez attacks another creature, harms another target, an ally harms the target, or Ogeez ends a turn more than 30 ft away.",
+  },
+  Itis: {
+    spellAnalog: 'Ray Of Enfeeblement',
+    description: 'Target deals only half damage with Strength-based weapon attacks.',
+  },
+  'Life Lover': {
+    spellAnalog: 'Beacon Of Hope',
+    description: 'Target has advantage on Wisdom saves and death saves, and regains the maximum possible from any healing.',
+  },
+  'Sucker Punch': {
+    spellAnalog: 'Bane',
+    description: 'Target subtracts a rolled D4 from its attack rolls and saving throws until the effect ends.',
+  },
+  Disorientator: {
+    spellAnalog: 'Enemies Abound',
+    description:
+      "Target can no longer tell friend from foe and treats every visible creature as an enemy; taking damage grants an Intelligence save to end it. It must target randomly among visible creatures and must take provoked opportunity attacks if able.",
+  },
+  'Happy Gas': {
+    spellAnalog: 'Hideous Laughter',
+    description:
+      'Target falls prone laughing, incapacitated and unable to stand (unaffected if Intelligence 4 or less); damage grants an advantaged Wisdom save to end it.',
+  },
+  'Lucky Shot': {
+    spellAnalog: 'Bless',
+    description: 'Target adds a rolled D4 to an attack roll or saving throw.',
+  },
+  "Charmed, I'm Sure": {
+    spellAnalog: 'Charm Person',
+    description: "Target is charmed by Ogeez until harmed by Ogeez or an ally, and regards Ogeez as a friendly acquaintance.",
+  },
+  Truesight: {
+    spellAnalog: 'See Invisibility',
+    description: 'Target sees invisible creatures/objects as visible and can see into the Ethereal Plane.',
+  },
+  'Hedge Better': {
+    spellAnalog: "Fortune's Favor",
+    description:
+      'Target can dismiss the effect to roll an extra d20 (choosing which result to use) on an attack roll, ability check, or save — or on an incoming attack roll against it.',
+  },
+  'The T': {
+    spellAnalog: 'Zone Of Truth',
+    description: "Target can't speak a deliberate lie.",
+  },
+  "Cat's Grace": {
+    spellAnalog: 'Enhance Ability',
+    description: "Target has advantage on Dexterity checks and takes no falling damage from falls of 20 feet or less (if not incapacitated).",
+  },
+  'Ask The Scarecrow': {
+    spellAnalog: 'Compulsion',
+    description:
+      "Ogeez can use a bonus action each turn to designate a horizontal direction; the target must use as much movement as possible to go that way next turn (not into obvious hazards), provoking opportunity attacks as needed.",
+  },
+  "Coward's Bane": {
+    spellAnalog: 'Cause Fear',
+    description: 'Target becomes frightened of Ogeez.',
+  },
+  'Disability, Check': {
+    spellAnalog: 'Bestow Curse',
+    description:
+      "Target has disadvantage on ability checks and saves using one ability score Ogeez chooses, and disadvantage on attack rolls against Ogeez; it must make a Wisdom save each turn or waste its action.",
+  },
+  "Bull's Strength": {
+    spellAnalog: 'Enhance Ability',
+    description: 'Target has advantage on Strength checks and doubled carrying capacity.',
+  },
+  'Simmer Down': {
+    spellAnalog: 'Calm Emotions',
+    description:
+      "Ogeez can suppress an existing charmed or frightened effect on the target; suppressed effects resume when this one ends, provided they haven't already expired.",
+  },
+  'Chakra Shocker': {
+    spellAnalog: 'Contact Other Plane',
+    description: 'Target may ask a distant entity up to five questions before the effect ends.',
+  },
+};
