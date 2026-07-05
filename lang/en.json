@@ -1,0 +1,16 @@
+{
+  "FUNGAL_GARDEN.title": "Fungal Garden",
+  "FUNGAL_GARDEN.open": "Open Fungal Garden",
+  "FUNGAL_GARDEN.tabs.grid": "Garden",
+  "FUNGAL_GARDEN.tabs.journal": "Journal",
+  "FUNGAL_GARDEN.tabs.stats": "Stats",
+  "FUNGAL_GARDEN.tabs.log": "Log",
+  "FUNGAL_GARDEN.gm.advanceDay": "+1 day",
+  "FUNGAL_GARDEN.gm.advanceWeek": "+1 week",
+  "FUNGAL_GARDEN.gm.advanceMonth": "+1 month",
+  "FUNGAL_GARDEN.gm.plant": "Plant random",
+  "FUNGAL_GARDEN.gm.reset": "Reset garden",
+  "FUNGAL_GARDEN.notify.noEmptyTile": "No empty tile to plant on.",
+  "FUNGAL_GARDEN.notify.gmOnly": "Only the GM can change the garden.",
+  "FUNGAL_GARDEN.sceneControl": "Fungal Garden"
+}

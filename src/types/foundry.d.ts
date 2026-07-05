@@ -42,12 +42,28 @@ declare global {
     };
   };
 
+  // ApplicationV2 / Handlebars are typed loosely (`any`) — v13's class shapes are
+  // large and we only need them to compile idiomatic subclass code. Behavior is
+  // verified inside Foundry, and the render data comes from the tested view-model.
+  /* eslint-disable @typescript-eslint/no-explicit-any */
   const foundry: {
     utils: {
       randomID(length?: number): string;
       deepClone<T>(obj: T): T;
     };
+    applications: {
+      api: {
+        ApplicationV2: any;
+        HandlebarsApplicationMixin: (base: any) => any;
+        DialogV2: any;
+      };
+    };
   };
 
+  function loadTemplates(paths: string[]): Promise<unknown>;
+  function renderTemplate(path: string, data: unknown): Promise<string>;
+  const Handlebars: { registerHelper(name: string, fn: (...args: any[]) => unknown): void };
+
   const CONFIG: Record<string, unknown>;
+  /* eslint-enable @typescript-eslint/no-explicit-any */
 }

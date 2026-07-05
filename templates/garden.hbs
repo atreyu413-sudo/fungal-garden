@@ -1,0 +1,126 @@
+<div class="fg-root">
+  <header class="fg-topbar">
+    <span class="fg-title"><i class="fas fa-seedling"></i> {{actorName}}</span>
+    {{#if vm}}
+    <span class="fg-day">Day {{vm.stats.campaignDay}}</span>
+    <span class="fg-eco fg-eco-{{vm.stats.ecosystemState}}">{{vm.stats.ecosystemState}}</span>
+    <span class="fg-mini">{{vm.stats.livingColonies}} colonies · {{vm.stats.discoveredSpecies}} species</span>
+    {{/if}}
+  </header>
+
+  <nav class="fg-tabs">
+    <button type="button" data-action="tab" data-tab="grid" class="{{#if isGrid}}active{{/if}}">Garden</button>
+    <button type="button" data-action="tab" data-tab="journal" class="{{#if isJournal}}active{{/if}}">Journal</button>
+    <button type="button" data-action="tab" data-tab="stats" class="{{#if isStats}}active{{/if}}">Stats</button>
+    <button type="button" data-action="tab" data-tab="log" class="{{#if isLog}}active{{/if}}">Log</button>
+  </nav>
+
+  {{#unless hasGarden}}
+  <section class="fg-empty">
+    <p>This shell has no fungal garden yet.</p>
+    {{#if isGM}}<button type="button" data-action="plant">Plant the first colony</button>{{/if}}
+  </section>
+  {{/unless}}
+
+  {{#if vm}}
+  <div class="fg-body">
+
+    {{#if isGrid}}
+    <section class="fg-grid">
+      <svg viewBox="0 0 {{vm.width}} {{vm.height}}" class="fg-svg" preserveAspectRatio="xMidYMid meet">
+        {{#each vm.hexes}}
+        <g class="fg-hex {{#if occupied}}occ{{/if}} {{#if bioluminescent}}biolum{{/if}}" data-action="hex" data-tile-id="{{id}}">
+          <polygon points="{{points}}" fill="{{fill}}" stroke="{{stroke}}" stroke-width="1.5" />
+          {{#if label}}<text x="{{cx}}" y="{{cy}}" fill="{{textFill}}" class="fg-glyph" text-anchor="middle" dominant-baseline="central">{{label}}</text>{{/if}}
+        </g>
+        {{/each}}
+      </svg>
+
+      {{#if selected}}
+      <aside class="fg-detail">
+        {{#if selected.species}}
+        <h3>{{selected.species.displayName}}</h3>
+        <dl>
+          <dt>Type</dt><dd>{{selected.species.physical.fungalType}}</dd>
+          <dt>Color</dt><dd>{{selected.species.physical.color}}</dd>
+          <dt>Pattern</dt><dd>{{selected.species.physical.pattern}}</dd>
+          <dt>Function</dt><dd>{{selected.species.function.category}}</dd>
+          <dt>Stage</dt><dd>{{selected.colony.stage}}</dd>
+          <dt>Mycelium</dt><dd>{{selected.colony.myceliumUnits}} ({{#if selected.colony.atMRUOM}}at MRUOM{{else}}below MRUOM{{/if}})</dd>
+          <dt>Maturity</dt><dd>{{selected.colony.maturityAgeDays}} / {{selected.species.physical.rates.rtfmDays}} days</dd>
+          <dt>Generation</dt><dd>{{selected.species.generation}}</dd>
+        </dl>
+        {{else}}
+        <h3>Empty hex {{selected.hex.id}}</h3>
+        <p class="fg-hint">{{#if isGM}}Click an empty hex to plant a colony here.{{else}}Bare shell.{{/if}}</p>
+        {{/if}}
+      </aside>
+      {{/if}}
+    </section>
+
+    <p class="fg-legend">Glyphs: ∴ mycelium · ♣ growing · ♠ mature · × dead. Gold border = shell edge.</p>
+    {{/if}}
+
+    {{#if isJournal}}
+    <section class="fg-journal">
+      {{#if vm.journal.length}}
+      <ul class="fg-species-list">
+        {{#each vm.journal}}
+        <li class="fg-species-card {{#if extinct}}extinct{{/if}}">
+          <span class="fg-swatch" style="background:{{swatch}}"></span>
+          <div class="fg-species-meta">
+            <span class="fg-species-name">{{name}}</span>
+            <span class="fg-species-sub">Gen {{generation}} · {{fungalType}} · {{functionCategory}}</span>
+            <span class="fg-species-sub">First seen day {{firstCultivatedDay}} · {{livingColonies}} living{{#if extinct}} · <em>extinct</em>{{/if}}</span>
+          </div>
+        </li>
+        {{/each}}
+      </ul>
+      {{else}}
+      <p class="fg-hint">No species discovered yet.</p>
+      {{/if}}
+    </section>
+    {{/if}}
+
+    {{#if isStats}}
+    <section class="fg-stats">
+      <div class="fg-stat"><span class="fg-stat-n">{{vm.stats.campaignDay}}</span><span class="fg-stat-l">Campaign day</span></div>
+      <div class="fg-stat"><span class="fg-stat-n">{{vm.stats.occupiedTiles}}/{{vm.stats.totalTiles}}</span><span class="fg-stat-l">Occupied hexes</span></div>
+      <div class="fg-stat"><span class="fg-stat-n">{{vm.stats.livingColonies}}</span><span class="fg-stat-l">Living colonies</span></div>
+      <div class="fg-stat"><span class="fg-stat-n">{{vm.stats.matureColonies}}</span><span class="fg-stat-l">Mature</span></div>
+      <div class="fg-stat"><span class="fg-stat-n">{{vm.stats.activeSpecies}}</span><span class="fg-stat-l">Active species</span></div>
+      <div class="fg-stat"><span class="fg-stat-n">{{vm.stats.discoveredSpecies}}</span><span class="fg-stat-l">Discovered</span></div>
+      <div class="fg-stat"><span class="fg-stat-n">{{vm.stats.inventoryTotal}}</span><span class="fg-stat-l">Harvested items</span></div>
+      <div class="fg-stat"><span class="fg-stat-n">{{vm.stats.ecosystemState}}</span><span class="fg-stat-l">Ecosystem</span></div>
+      <div class="fg-stat"><span class="fg-stat-n">{{vm.inventory.spores}}·{{vm.inventory.powders}}·{{vm.inventory.teas}}·{{vm.inventory.toxins}}</span><span class="fg-stat-l">Spores·Powders·Teas·Toxins</span></div>
+    </section>
+    {{/if}}
+
+    {{#if isLog}}
+    <section class="fg-log">
+      {{#if vm.events.length}}
+      <ul>
+        {{#each vm.events}}
+        <li class="fg-event fg-event-{{type}}"><span class="fg-event-day">D{{day}}</span> <span class="fg-event-type">{{type}}</span> <span class="fg-event-desc">{{description}}</span></li>
+        {{/each}}
+      </ul>
+      {{else}}
+      <p class="fg-hint">No events yet. Advance time to grow the garden.</p>
+      {{/if}}
+    </section>
+    {{/if}}
+
+  </div>
+
+  {{#if isGM}}
+  <footer class="fg-gm">
+    <span class="fg-gm-label">GM</span>
+    <button type="button" data-action="advance" data-days="1">+1 day</button>
+    <button type="button" data-action="advance" data-days="7">+1 week</button>
+    <button type="button" data-action="advance" data-days="30">+1 month</button>
+    <button type="button" data-action="plant">Plant random</button>
+    <button type="button" data-action="clear" class="fg-danger">Reset garden</button>
+  </footer>
+  {{/if}}
+  {{/if}}
+</div>

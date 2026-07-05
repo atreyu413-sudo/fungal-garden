@@ -1,0 +1,115 @@
+/* Fungal Garden — application styling. Scoped under .fungal-garden (the app's
+   class) so it doesn't leak into the rest of Foundry. */
+
+.fungal-garden .fg-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 6px;
+  color: #e8e6da;
+  font-family: "Signika", sans-serif;
+}
+
+.fungal-garden .fg-topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 10px;
+  background: #23271f;
+  border-radius: 6px;
+}
+.fungal-garden .fg-title { font-weight: 700; font-size: 1.05rem; }
+.fungal-garden .fg-day { color: #c9a24b; font-variant-numeric: tabular-nums; }
+.fungal-garden .fg-mini { margin-left: auto; opacity: 0.7; font-size: 0.82rem; }
+
+.fungal-garden .fg-eco {
+  text-transform: capitalize;
+  font-size: 0.78rem;
+  padding: 1px 8px;
+  border-radius: 10px;
+  background: #3a5a3a;
+}
+.fungal-garden .fg-eco-damaged { background: #7a5a1f; }
+.fungal-garden .fg-eco-collapsing,
+.fungal-garden .fg-eco-collapsed { background: #7a2f2f; }
+
+.fungal-garden .fg-tabs { display: flex; gap: 4px; }
+.fungal-garden .fg-tabs button {
+  flex: 1;
+  background: #2b2f26;
+  color: #cfcdbf;
+  border: 1px solid #12140f;
+  border-radius: 6px 6px 0 0;
+  padding: 5px 0;
+  cursor: pointer;
+}
+.fungal-garden .fg-tabs button.active { background: #3c4432; color: #fff; font-weight: 700; }
+
+.fungal-garden .fg-body { flex: 1; overflow: auto; min-height: 0; }
+
+.fungal-garden .fg-grid { display: flex; gap: 10px; align-items: flex-start; }
+.fungal-garden .fg-svg {
+  flex: 1;
+  width: 100%;
+  max-height: 560px;
+  background: radial-gradient(circle at 50% 40%, #1c2018, #14160f);
+  border-radius: 8px;
+}
+.fungal-garden .fg-hex { cursor: pointer; }
+.fungal-garden .fg-hex polygon { transition: opacity 0.1s; }
+.fungal-garden .fg-hex:hover polygon { opacity: 0.82; }
+.fungal-garden .fg-hex.biolum polygon { filter: drop-shadow(0 0 4px #9be3ff); }
+.fungal-garden .fg-glyph { font-size: 15px; pointer-events: none; user-select: none; }
+
+.fungal-garden .fg-detail {
+  width: 220px;
+  flex: none;
+  background: #23271f;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+.fungal-garden .fg-detail h3 { margin: 0 0 6px; font-size: 0.95rem; }
+.fungal-garden .fg-detail dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; margin: 0; font-size: 0.8rem; }
+.fungal-garden .fg-detail dt { opacity: 0.6; }
+.fungal-garden .fg-detail dd { margin: 0; text-transform: capitalize; }
+
+.fungal-garden .fg-legend { font-size: 0.72rem; opacity: 0.6; margin: 4px 2px 0; }
+
+.fungal-garden .fg-species-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.fungal-garden .fg-species-card {
+  display: flex; align-items: center; gap: 10px;
+  background: #23271f; border-radius: 6px; padding: 6px 10px;
+}
+.fungal-garden .fg-species-card.extinct { opacity: 0.55; }
+.fungal-garden .fg-swatch { width: 20px; height: 20px; border-radius: 4px; border: 1px solid #000; flex: none; }
+.fungal-garden .fg-species-meta { display: flex; flex-direction: column; }
+.fungal-garden .fg-species-name { font-weight: 700; }
+.fungal-garden .fg-species-sub { font-size: 0.76rem; opacity: 0.7; text-transform: capitalize; }
+
+.fungal-garden .fg-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.fungal-garden .fg-stat { background: #23271f; border-radius: 6px; padding: 10px; display: flex; flex-direction: column; }
+.fungal-garden .fg-stat-n { font-size: 1.3rem; font-weight: 700; color: #c9a24b; }
+.fungal-garden .fg-stat-l { font-size: 0.76rem; opacity: 0.7; }
+
+.fungal-garden .fg-log ul { list-style: none; margin: 0; padding: 0; }
+.fungal-garden .fg-event { display: flex; gap: 8px; padding: 3px 6px; border-bottom: 1px solid #2b2f26; font-size: 0.8rem; }
+.fungal-garden .fg-event-day { color: #c9a24b; font-variant-numeric: tabular-nums; flex: none; }
+.fungal-garden .fg-event-type { text-transform: uppercase; font-size: 0.68rem; opacity: 0.6; width: 74px; flex: none; }
+.fungal-garden .fg-event-desc { opacity: 0.9; }
+
+.fungal-garden .fg-empty { text-align: center; padding: 30px; opacity: 0.85; }
+
+.fungal-garden .fg-gm {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 8px; background: #23271f; border-radius: 6px;
+}
+.fungal-garden .fg-gm-label { font-size: 0.7rem; opacity: 0.6; margin-right: 4px; }
+.fungal-garden .fg-gm button {
+  background: #3c4432; color: #eee; border: 1px solid #12140f;
+  border-radius: 5px; padding: 4px 10px; cursor: pointer;
+}
+.fungal-garden .fg-gm button:hover { background: #4a563c; }
+.fungal-garden .fg-gm button.fg-danger { margin-left: auto; background: #5a2f2f; }
+.fungal-garden .fg-gm button.fg-danger:hover { background: #723a3a; }
+
+.fungal-garden .fg-hint { opacity: 0.6; font-size: 0.82rem; }
