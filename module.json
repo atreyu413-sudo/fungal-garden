@@ -1,12 +1,25 @@
 {
   "id": "fungal-garden",
   "title": "Fungal Garden",
+  "description": "A living fungal ecosystem simulation growing on a Tortle's shell, for D&D 5e. Colonies grow, breed into permanent hybrid species, and are harvested over campaign time.",
 
-  "version": "0.0.1",
+  "version": "0.2.0",
 
   "compatibility": {
     "minimum": "13",
     "verified": "13"
+  },
+
+  "relationships": {
+    "systems": [
+      {
+        "id": "dnd5e",
+        "type": "system",
+        "compatibility": {
+          "minimum": "4.0.0"
+        }
+      }
+    ]
   },
 
   "authors": [
