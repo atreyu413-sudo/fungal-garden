@@ -5,6 +5,10 @@
 
   "version": "0.2.0",
 
+  "url": "https://github.com/atreyu413-sudo/fungal-garden",
+  "manifest": "https://raw.githubusercontent.com/atreyu413-sudo/fungal-garden/main/module.json",
+  "download": "https://github.com/atreyu413-sudo/fungal-garden/archive/refs/heads/main.zip",
+
   "compatibility": {
     "minimum": "13",
     "verified": "13"

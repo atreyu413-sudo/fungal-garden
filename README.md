@@ -14,6 +14,45 @@ It is a living ecosystem.
 
 ---
 
+## Installation
+
+**Foundry — Install from Manifest URL**
+
+In Foundry's *Add-on Modules → Install Module*, paste the manifest URL:
+
+```
+https://raw.githubusercontent.com/atreyu413-sudo/fungal-garden/main/module.json
+```
+
+**Manual install**
+
+Clone (or download) this repository into your Foundry `Data/modules/` folder as a
+folder named `fungal-garden`:
+
+```
+git clone https://github.com/atreyu413-sudo/fungal-garden.git
+```
+
+The built module bundle (`dist/module.js`) is committed, so no build step is
+required to run it — enable the module in your world and it works.
+
+**Requirements:** Foundry VTT v13, D&D 5e system.
+
+## Development
+
+```
+npm install        # dependencies
+npm run build      # rebuild dist/module.js (commit the result)
+npm test           # run the engine test suite (Vitest)
+npm run typecheck  # tsc --noEmit
+```
+
+The simulation engine (`src/engine/`) is pure and Foundry-free; the Foundry
+adapter lives in `src/foundry/` and the UI in `src/ui/`. See `docs/` for the full
+design (rulebook, design decisions, data schema, automation pipeline).
+
+---
+
 ## Features
 
 ### Living Ecosystem

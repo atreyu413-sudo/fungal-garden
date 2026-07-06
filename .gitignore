@@ -1,5 +1,6 @@
 node_modules/
-dist/
+# dist/ is committed so the module is installable straight from the repo.
+# It is a build artifact (npm run build); regenerate before committing changes.
 *.log
 .DS_Store
 coverage/
