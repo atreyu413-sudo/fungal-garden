@@ -1210,7 +1210,7 @@ function buildGardenViewModel(bundle, opts = {}) {
 }
 const TEMPLATE = `modules/${MODULE_ID}/templates/garden.hbs`;
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
-const _GardenApp = class _GardenApp extends HandlebarsApplicationMixin(ApplicationV2) {
+class GardenApp extends HandlebarsApplicationMixin(ApplicationV2) {
   constructor(options) {
     super(options);
     __publicField(this, "actorId");
@@ -1245,47 +1245,65 @@ const _GardenApp = class _GardenApp extends HandlebarsApplicationMixin(Applicati
       actorName: (actor == null ? void 0 : actor.name) ?? "Unknown",
       vm,
       selected,
-      tab: this.activeTab,
-      isGrid: this.activeTab === "grid",
-      isJournal: this.activeTab === "journal",
-      isStats: this.activeTab === "stats",
-      isLog: this.activeTab === "log"
+      activeTab: this.activeTab
     };
   }
-  // --- action handlers (Foundry calls these with `this` = the app instance) ---
-  static onTab(_event, target) {
-    const tab = target.dataset.tab;
-    if (tab) {
-      this.activeTab = tab;
-      this.render();
-    }
+  /** Attach DOM listeners after each render. Foundry calls this post-render. */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _onRender(_context, _options) {
+    const root = this.element;
+    if (!root) return;
+    root.querySelectorAll("[data-tab]").forEach((btn) => {
+      btn.addEventListener("click", () => this.showTab(btn.dataset.tab));
+    });
+    this.showTab(this.activeTab);
+    root.querySelectorAll("[data-act]").forEach((btn) => {
+      btn.addEventListener("click", () => void this.runAction(btn.dataset.act ?? "", btn.dataset));
+    });
+    root.querySelectorAll("[data-tile-id]").forEach((g) => {
+      g.addEventListener("click", () => void this.onHex(g.dataset.tileId ?? ""));
+    });
   }
-  static async onAdvance(_event, target) {
-    if (!this.actor) return;
-    const days = Number(target.dataset.days ?? 1) || 1;
-    await advanceGarden(this.actor, days);
-    this.render();
+  showTab(tab) {
+    this.activeTab = tab;
+    const root = this.element;
+    if (!root) return;
+    root.querySelectorAll("[data-tab]").forEach((b) => {
+      b.classList.toggle("active", b.dataset.tab === tab);
+    });
+    root.querySelectorAll("[data-panel]").forEach((p) => {
+      p.classList.toggle("active", p.dataset.panel === tab);
+    });
   }
-  static async onPlant(_event, target) {
+  async runAction(act, data) {
     var _a;
     if (!this.actor) return;
-    const tileId2 = target.dataset.tileId ?? this.firstEmptyTileId();
-    if (!tileId2) {
-      (_a = ui.notifications) == null ? void 0 : _a.warn("Fungal Garden: no empty tile to plant on.");
-      return;
+    switch (act) {
+      case "advance": {
+        await advanceGarden(this.actor, Number(data.days ?? 1) || 1);
+        break;
+      }
+      case "plant": {
+        const tileId2 = this.firstEmptyTileId();
+        if (!tileId2) {
+          (_a = ui.notifications) == null ? void 0 : _a.warn("Fungal Garden: no empty tile to plant on.");
+          return;
+        }
+        await plantSpecies(this.actor, tileId2);
+        break;
+      }
+      case "clear": {
+        await clearBundle(this.actor);
+        this.selectedTileId = null;
+        break;
+      }
+      default:
+        return;
     }
-    await plantSpecies(this.actor, tileId2);
-    this.render();
+    await this.render();
   }
-  static async onClear() {
-    if (!this.actor) return;
-    await clearBundle(this.actor);
-    this.selectedTileId = null;
-    this.render();
-  }
-  static async onHex(_event, target) {
+  async onHex(tileId2) {
     var _a;
-    const tileId2 = target.dataset.tileId;
     if (!tileId2 || !this.actor) return;
     const bundle = getGarden(this.actor);
     const tile = bundle == null ? void 0 : bundle.garden.tiles.find((t) => t.id === tileId2);
@@ -1293,15 +1311,15 @@ const _GardenApp = class _GardenApp extends HandlebarsApplicationMixin(Applicati
       await plantSpecies(this.actor, tileId2);
     }
     this.selectedTileId = tileId2;
-    this.render();
+    await this.render();
   }
   firstEmptyTileId() {
     var _a;
     const bundle = this.actor ? getGarden(this.actor) : null;
     return ((_a = bundle == null ? void 0 : bundle.garden.tiles.find((t) => !t.occupied)) == null ? void 0 : _a.id) ?? null;
   }
-};
-__publicField(_GardenApp, "DEFAULT_OPTIONS", {
+}
+__publicField(GardenApp, "DEFAULT_OPTIONS", {
   id: "fungal-garden-app",
   classes: ["fungal-garden"],
   tag: "div",
@@ -1310,19 +1328,11 @@ __publicField(_GardenApp, "DEFAULT_OPTIONS", {
     icon: "fas fa-seedling",
     resizable: true
   },
-  position: { width: 860, height: 760 },
-  actions: {
-    tab: _GardenApp.onTab,
-    advance: _GardenApp.onAdvance,
-    plant: _GardenApp.onPlant,
-    clear: _GardenApp.onClear,
-    hex: _GardenApp.onHex
-  }
+  position: { width: 860, height: 760 }
 });
-__publicField(_GardenApp, "PARTS", {
+__publicField(GardenApp, "PARTS", {
   main: { template: TEMPLATE, scrollable: [""] }
 });
-let GardenApp = _GardenApp;
 function openGardenApp(actor) {
   const app = new GardenApp({ actorId: actor.id, window: { title: `${actor.name} — Fungal Garden` } });
   app.render(true);

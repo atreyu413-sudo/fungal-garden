@@ -2,6 +2,12 @@
 // discovery journal, stats, and event log, with a GM control panel. All the
 // render data comes from the tested pure view-model (view-model.ts); this class
 // only bridges Foundry (actor lookup, persistence, click actions) to it.
+//
+// Interactions are wired with explicit DOM listeners in _onRender rather than the
+// declarative ApplicationV2 `actions` map — the declarative path proved
+// unreliable in a live world, and manual listeners are simple and predictable.
+// Tab switching toggles panel visibility directly (no re-render); GM actions
+// mutate the garden and then re-render.
 
 import { MODULE_ID } from '../foundry/constants';
 import { advanceGarden, getGarden, plantSpecies } from '../foundry/actor-garden';
@@ -9,12 +15,13 @@ import { clearBundle } from '../foundry/store';
 import { buildGardenViewModel } from './view-model';
 
 const TEMPLATE = `modules/${MODULE_ID}/templates/garden.hbs`;
+type TabName = 'grid' | 'journal' | 'stats' | 'log';
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 export class GardenApp extends HandlebarsApplicationMixin(ApplicationV2) {
   actorId: string;
-  private activeTab: 'grid' | 'journal' | 'stats' | 'log' = 'grid';
+  private activeTab: TabName = 'grid';
   private selectedTileId: string | null = null;
 
   constructor(options: { actorId: string } & Record<string, unknown>) {
@@ -32,13 +39,6 @@ export class GardenApp extends HandlebarsApplicationMixin(ApplicationV2) {
       resizable: true,
     },
     position: { width: 860, height: 760 },
-    actions: {
-      tab: GardenApp.onTab,
-      advance: GardenApp.onAdvance,
-      plant: GardenApp.onPlant,
-      clear: GardenApp.onClear,
-      hex: GardenApp.onHex,
-    },
   };
 
   static PARTS = {
@@ -74,51 +74,73 @@ export class GardenApp extends HandlebarsApplicationMixin(ApplicationV2) {
       actorName: actor?.name ?? 'Unknown',
       vm,
       selected,
-      tab: this.activeTab,
-      isGrid: this.activeTab === 'grid',
-      isJournal: this.activeTab === 'journal',
-      isStats: this.activeTab === 'stats',
-      isLog: this.activeTab === 'log',
+      activeTab: this.activeTab,
     };
   }
 
-  // --- action handlers (Foundry calls these with `this` = the app instance) ---
+  /** Attach DOM listeners after each render. Foundry calls this post-render. */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _onRender(_context: unknown, _options: unknown): void {
+    const root = this.element as HTMLElement | undefined;
+    if (!root) return;
 
-  static onTab(this: GardenApp, _event: Event, target: HTMLElement): void {
-    const tab = target.dataset.tab as GardenApp['activeTab'] | undefined;
-    if (tab) {
-      this.activeTab = tab;
-      this.render();
+    // Tabs — instant show/hide, no re-render.
+    root.querySelectorAll<HTMLElement>('[data-tab]').forEach((btn) => {
+      btn.addEventListener('click', () => this.showTab(btn.dataset.tab as TabName));
+    });
+    this.showTab(this.activeTab);
+
+    // GM control buttons.
+    root.querySelectorAll<HTMLElement>('[data-act]').forEach((btn) => {
+      btn.addEventListener('click', () => void this.runAction(btn.dataset.act ?? '', btn.dataset));
+    });
+
+    // Hex clicks.
+    root.querySelectorAll<HTMLElement>('[data-tile-id]').forEach((g) => {
+      g.addEventListener('click', () => void this.onHex(g.dataset.tileId ?? ''));
+    });
+  }
+
+  private showTab(tab: TabName): void {
+    this.activeTab = tab;
+    const root = this.element as HTMLElement | undefined;
+    if (!root) return;
+    root.querySelectorAll<HTMLElement>('[data-tab]').forEach((b) => {
+      b.classList.toggle('active', b.dataset.tab === tab);
+    });
+    root.querySelectorAll<HTMLElement>('[data-panel]').forEach((p) => {
+      p.classList.toggle('active', p.dataset.panel === tab);
+    });
+  }
+
+  private async runAction(act: string, data: DOMStringMap): Promise<void> {
+    if (!this.actor) return;
+    switch (act) {
+      case 'advance': {
+        await advanceGarden(this.actor, Number(data.days ?? 1) || 1);
+        break;
+      }
+      case 'plant': {
+        const tileId = this.firstEmptyTileId();
+        if (!tileId) {
+          ui.notifications?.warn('Fungal Garden: no empty tile to plant on.');
+          return;
+        }
+        await plantSpecies(this.actor, tileId);
+        break;
+      }
+      case 'clear': {
+        await clearBundle(this.actor);
+        this.selectedTileId = null;
+        break;
+      }
+      default:
+        return;
     }
+    await this.render();
   }
 
-  static async onAdvance(this: GardenApp, _event: Event, target: HTMLElement): Promise<void> {
-    if (!this.actor) return;
-    const days = Number(target.dataset.days ?? 1) || 1;
-    await advanceGarden(this.actor, days);
-    this.render();
-  }
-
-  static async onPlant(this: GardenApp, _event: Event, target: HTMLElement): Promise<void> {
-    if (!this.actor) return;
-    const tileId = target.dataset.tileId ?? this.firstEmptyTileId();
-    if (!tileId) {
-      ui.notifications?.warn('Fungal Garden: no empty tile to plant on.');
-      return;
-    }
-    await plantSpecies(this.actor, tileId);
-    this.render();
-  }
-
-  static async onClear(this: GardenApp): Promise<void> {
-    if (!this.actor) return;
-    await clearBundle(this.actor);
-    this.selectedTileId = null;
-    this.render();
-  }
-
-  static async onHex(this: GardenApp, _event: Event, target: HTMLElement): Promise<void> {
-    const tileId = target.dataset.tileId;
+  private async onHex(tileId: string): Promise<void> {
     if (!tileId || !this.actor) return;
     const bundle = getGarden(this.actor);
     const tile = bundle?.garden.tiles.find((t) => t.id === tileId);
@@ -127,7 +149,7 @@ export class GardenApp extends HandlebarsApplicationMixin(ApplicationV2) {
       await plantSpecies(this.actor, tileId);
     }
     this.selectedTileId = tileId;
-    this.render();
+    await this.render();
   }
 
   private firstEmptyTileId(): string | null {
@@ -136,6 +158,7 @@ export class GardenApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   // provided by ApplicationV2 base (loosely typed shim)
+  declare element: HTMLElement;
   declare render: (force?: boolean) => Promise<unknown>;
 }
 

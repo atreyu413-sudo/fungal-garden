@@ -47,6 +47,10 @@
 
 .fungal-garden .fg-body { flex: 1; overflow: auto; min-height: 0; }
 
+/* Only the active tab panel is shown. Panels are toggled by garden-app.ts. */
+.fungal-garden .fg-panel { display: none; }
+.fungal-garden .fg-panel.active { display: block; }
+
 .fungal-garden .fg-grid { display: flex; gap: 10px; align-items: flex-start; }
 .fungal-garden .fg-svg {
   flex: 1;
